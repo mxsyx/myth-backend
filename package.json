@@ -1,0 +1,16 @@
+{
+  "name": "myth-backend",
+  "version": "0.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "wrangler dev --local"
+  },
+  "dependencies": {
+    "@cloudflare/workers-types": "^4.20250510.0",
+    "hono": "^4.7.9"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "wrangler": "^4.14.4"
+  }
+}
