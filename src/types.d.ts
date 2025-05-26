@@ -1,11 +1,14 @@
 import type { ValidationTargets, Context } from "hono";
-import type { Ai, R2Bucket, Vectorize } from "@cloudflare/workers-types";
+import type { Ai, R2Bucket } from "@cloudflare/workers-types";
 
 export interface Bindings {
   AI: Ai;
   R2_ASSETS: R2Bucket;
   R2_ASSETS_TMP: R2Bucket;
-  VECTORIZE: Vectorize;
+
+  // Qdrant
+  QDRANT_URL: string;
+  QDRANT_API_KEY: string;
 }
 
 declare global {

@@ -2,6 +2,7 @@ import { type BGEM3OuputEmbedding } from "@cloudflare/workers-types";
 import { z } from "zod";
 import { fileKeySchema } from "./file";
 import { HTTPException } from "hono/http-exception";
+import { createQdrantClient } from "./qdrant";
 
 export const createImageAssetSchame = z.object({
   key: z.string(),
@@ -59,19 +60,22 @@ export async function createImageAsset(
   const output = (await c.env.AI.run("@cf/baai/bge-m3", {
     text: [caption],
   })) as BGEM3OuputEmbedding;
+  const qdrant = createQdrantClient(c.env);
   if (output.data?.length) {
     // Insert the generated embedding into the vector store
     // The vector store is used to efficiently search for images that match the caption
-    await c.env.VECTORIZE.upsert([
-      {
-        // The ID of the image is used as the key in the vector store
-        id: file.customMetadata.id,
-        // The generated embedding is stored in the vector store
-        values: output.data[0],
-        // The caption is stored as metadata in the vector store
-        metadata: { caption, tags },
-      },
-    ]);
+    await qdrant.upsert("myth_assets", {
+      points: [
+        {
+          // The ID of the image is used as the key in the vector store
+          id: file.customMetadata.id,
+          // The caption is stored as metadata in the vector store
+          payload: { score: 100, caption, tags },
+          // The generated embedding is stored in the vector store
+          vector: output.data[0],
+        },
+      ],
+    });
   }
 
   try {
@@ -82,7 +86,9 @@ export async function createImageAsset(
   } catch (e) {
     // If there's an error, delete the file from the vector store
     // This is necessary because the file might be partially uploaded, and we don't want to leave it in the vector store
-    await c.env.VECTORIZE.deleteByIds([file.customMetadata.id]);
+    await qdrant.delete("myth_assets", {
+      points: [file.customMetadata.id],
+    });
     throw new HTTPException(500, {
       message: "An error occurred when uploading the image",
     });
@@ -104,7 +110,21 @@ export async function searchImage(
   if (output.data?.length) {
     // Search the vector store for the top 10 images that match the embedding
     // The results are returned as an array of objects with the image ID and caption
-    const results = await c.env.VECTORIZE.query(output.data[0], { topK: 10 });
+    const qdrant = createQdrantClient(c.env);
+    const results = await qdrant.query("myth_assets", {
+      with_payload: true,
+      query: output.data[0],
+      filter: {
+        must: [
+          {
+            key: "caption",
+            match: {
+              text: prompt,
+            },
+          },
+        ],
+      },
+    });
 
     return c.json(results);
   } else {

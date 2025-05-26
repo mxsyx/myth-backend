@@ -18,7 +18,3 @@ preview_bucket_name="myth-assets-tmp"
 
 [ai]
 binding = "AI" 
-
-[[vectorize]]
-binding = "VECTORIZE"
-index_name = "myth-assets"
