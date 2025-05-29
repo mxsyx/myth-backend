@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { logger } from "hono/logger";
 import { poweredBy } from "hono/powered-by";
+import { cors } from "hono/cors";
 
 import { Bindings } from "./types";
 import {
@@ -17,6 +18,16 @@ const app = new Hono();
 
 app.use("*", logger());
 app.use("*", poweredBy());
+app.use(
+  "*",
+  cors({
+    origin: "http://localhost:5173",
+    allowHeaders: ["Content-Type", "Authorization"],
+    allowMethods: ["POST", "GET", "PUT", "DELETE", "OPTIONS"],
+    maxAge: 3600 * 24,
+    credentials: true,
+  })
+);
 
 const v1App = new Hono<{ Bindings: Bindings }>();
 
