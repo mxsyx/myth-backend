@@ -13,17 +13,21 @@ import {
 import { Validator } from "./utils";
 import { fileKeySchema, uploadFileToR2 } from "./file";
 
-const app = new Hono<{ Bindings: Bindings }>();
+const app = new Hono();
 
 app.use("*", logger());
 app.use("*", poweredBy());
 
-app.get("/", (c) => c.text("Hello Hono!"));
+const v1App = new Hono<{ Bindings: Bindings }>();
 
-app.post("/files", uploadFileToR2);
-app.post("/image/captions", Validator(fileKeySchema), generateImageCaption);
-app.post("/images", Validator(createImageAssetSchame), createImageAsset);
-app.get("/images", Validator(searchImageSchame, "query"), searchImage);
+v1App.get("/", (c) => c.text("Hello Hono!"));
+
+v1App.post("/files", uploadFileToR2);
+v1App.post("/image/captions", Validator(fileKeySchema), generateImageCaption);
+v1App.post("/images", Validator(createImageAssetSchame), createImageAsset);
+v1App.get("/images", Validator(searchImageSchame, "query"), searchImage);
+
+app.route("/v1", v1App);
 
 app.onError((err, c) => {
   console.error("Error:", err);
