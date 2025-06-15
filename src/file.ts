@@ -7,7 +7,7 @@ export const fileIdSchema = z.object({ id: z.string() });
 
 function validImage(file: File) {
   if (file.size > 10 * ONE_MB) {
-    return "Size shouldn't be more than 10 MB";
+    return "Size shouldn't be more `than` 10 MB";
   }
   return null;
 }
@@ -34,8 +34,15 @@ export async function uploadFileToR2(c: C) {
   }
 
   let message = validImage(file);
+  const customMetadata: Dict<string> = {
+    size: file.size.toString(),
+    name: file.name,
+  };
   if (file.type.startsWith("image/")) {
     message = validImage(file);
+    customMetadata.width = formData.get("width") as string;
+    customMetadata.height = formData.get("height") as string;
+    customMetadata.blurhash = formData.get("blurhash") as string;
   } else {
     message = "Not supported file type";
   }
@@ -47,20 +54,18 @@ export async function uploadFileToR2(c: C) {
   const blob = await file.arrayBuffer();
   const uuid = crypto.randomUUID();
   const key = `${file.type.split("/")[0]}/${uuid}.${getExtension(file.type)}`;
+  customMetadata.id = uuid;
 
   await c.env.R2_ASSETS_TMP.put(key, blob, {
     httpMetadata: {
       contentType: file.type,
     },
-    customMetadata: {
-      id: uuid,
-    },
+    customMetadata,
   });
 
   return c.json({
     id: uuid,
     key,
-    size: file.size,
-    type: file.type,
+    metadata: customMetadata,
   });
 }
