@@ -1,6 +1,7 @@
 import { getExtension } from "hono/utils/mime";
 import { ONE_MB } from "./constants";
 import { z } from "zod";
+import { AssetType, AssetTypeEnum } from "./types";
 
 export const fileKeySchema = z.object({ key: z.string() });
 export const fileIdSchema = z.object({ id: z.string() });
@@ -40,19 +41,26 @@ export async function uploadFileToR2(c: C) {
     );
   }
 
-  let message = validImage(file);
+  let type: AssetType;
+  let message: string | null = null;
   const customMetadata: Dict<string> = {};
   if (file.type.startsWith("image/")) {
+    type = AssetTypeEnum.IMAGE;
     message = validImage(file);
     customMetadata.width = formData.get("width") as string;
     customMetadata.height = formData.get("height") as string;
     customMetadata.thumbhash = formData.get("thumbhash") as string;
-  } else if (!file.type.startsWith("video/")) {
+  } else if (file.type.startsWith("video/")) {
+    type = AssetTypeEnum.VIDEO;
     message = validVideo(file);
     customMetadata.width = formData.get("width") as string;
     customMetadata.height = formData.get("height") as string;
     customMetadata.duration = formData.get("duration") as string;
+  } else if (file.type.startsWith("audio/")) {
+    type = AssetTypeEnum.AUDIO;
+    customMetadata.duration = formData.get("duration") as string;
   } else {
+    type = AssetTypeEnum.IMAGE;
     message = "Not supported file type";
   }
 
@@ -75,6 +83,7 @@ export async function uploadFileToR2(c: C) {
   return c.json({
     id: uuid,
     key,
+    type,
     metadata: customMetadata,
   });
 }
