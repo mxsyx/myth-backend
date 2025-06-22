@@ -34,15 +34,12 @@ export async function uploadFileToR2(c: C) {
   }
 
   let message = validImage(file);
-  const customMetadata: Dict<string> = {
-    size: file.size.toString(),
-    name: file.name,
-  };
+  const customMetadata: Dict<string> = {};
   if (file.type.startsWith("image/")) {
     message = validImage(file);
     customMetadata.width = formData.get("width") as string;
     customMetadata.height = formData.get("height") as string;
-    customMetadata.blurhash = formData.get("blurhash") as string;
+    customMetadata.thumbhash = formData.get("thumbhash") as string;
   } else {
     message = "Not supported file type";
   }

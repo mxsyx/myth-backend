@@ -3,6 +3,7 @@ import { z } from "zod";
 import { fileKeySchema } from "./file";
 import { HTTPException } from "hono/http-exception";
 import { createQdrantClient } from "./qdrant";
+import { AssetTypeEnum } from "./types";
 
 export const createImageAssetSchame = z.object({
   key: z.string(),
@@ -70,7 +71,12 @@ export async function createImageAsset(
           // The ID of the image is used as the key in the vector store
           id: file.customMetadata.id,
           // The caption is stored as metadata in the vector store
-          payload: { score: 100, caption, tags },
+          payload: {
+            url: `${key}?w=${file.customMetadata.width}&h=${file.customMetadata.height}&thumbhash=${file.customMetadata.thumbhash}`,
+            caption,
+            tags,
+            type: AssetTypeEnum.IMAGE,
+          },
           // The generated embedding is stored in the vector store
           vector: output.data[0],
         },

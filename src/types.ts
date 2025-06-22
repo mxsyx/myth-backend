@@ -25,3 +25,9 @@ declare global {
     { out: { [K in R]: T } }
   >;
 }
+
+export const AssetTypeEnum = {
+  IMAGE: 1,
+  VIDEO: 2,
+  AUDIO: 3,
+} as const;

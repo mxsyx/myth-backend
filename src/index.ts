@@ -13,6 +13,7 @@ import {
 } from "./image";
 import { Validator } from "./utils";
 import { fileKeySchema, uploadFileToR2 } from "./file";
+import { getAssets, getAssetsSchame } from "./asset";
 
 const app = new Hono();
 
@@ -37,12 +38,13 @@ v1App.post("/files", uploadFileToR2);
 v1App.post("/image/captions", Validator(fileKeySchema), generateImageCaption);
 v1App.post("/images", Validator(createImageAssetSchame), createImageAsset);
 v1App.get("/images", Validator(searchImageSchame, "query"), searchImage);
+v1App.get("/assets", Validator(getAssetsSchame, "query"), getAssets);
 
 app.route("/v1", v1App);
 
 app.onError((err, c) => {
   console.error("Error:", err);
-  return c.json({ message: "Internal Server Error" }, 500);
+  return c.json({ message: err.message || "Internal Server Error" }, 500);
 });
 
 app.notFound((c) => {
