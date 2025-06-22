@@ -12,6 +12,13 @@ function validImage(file: File) {
   return null;
 }
 
+function validVideo(file: File) {
+  if (file.size > 256 * ONE_MB) {
+    return "Size shouldn't be more `than` 256 MB";
+  }
+  return null;
+}
+
 /**
  * Handles the upload of a file to R2 storage.
  * @description This function extracts a file from the request's form data, validates its type and size, and uploads it to a temporary R2 storage location.
@@ -40,6 +47,11 @@ export async function uploadFileToR2(c: C) {
     customMetadata.width = formData.get("width") as string;
     customMetadata.height = formData.get("height") as string;
     customMetadata.thumbhash = formData.get("thumbhash") as string;
+  } else if (!file.type.startsWith("video/")) {
+    message = validVideo(file);
+    customMetadata.width = formData.get("width") as string;
+    customMetadata.height = formData.get("height") as string;
+    customMetadata.duration = formData.get("duration") as string;
   } else {
     message = "Not supported file type";
   }

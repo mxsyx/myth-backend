@@ -8,12 +8,11 @@ import {
   createImageAsset,
   createImageAssetSchame,
   generateImageCaption,
-  searchImage,
-  searchImageSchame,
 } from "./image";
 import { Validator } from "./utils";
 import { fileKeySchema, uploadFileToR2 } from "./file";
 import { getAssets, getAssetsSchame } from "./asset";
+import { createVideoAsset, createVideoAssetSchema } from "./video";
 
 const app = new Hono();
 
@@ -37,7 +36,8 @@ v1App.get("/", (c) => c.text("Hello Hono!"));
 v1App.post("/files", uploadFileToR2);
 v1App.post("/image/captions", Validator(fileKeySchema), generateImageCaption);
 v1App.post("/images", Validator(createImageAssetSchame), createImageAsset);
-v1App.get("/images", Validator(searchImageSchame, "query"), searchImage);
+v1App.post("/videos", Validator(createVideoAssetSchema), createVideoAsset);
+
 v1App.get("/assets", Validator(getAssetsSchame, "query"), getAssets);
 
 app.route("/v1", v1App);
