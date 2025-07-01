@@ -13,6 +13,7 @@ import { Validator } from "./utils";
 import { fileKeySchema, uploadFileToR2 } from "./file";
 import { getAssets, getAssetsSchame } from "./asset";
 import { createVideoAsset, createVideoAssetSchema } from "./video";
+import { createAudioAsset, createAudioAssetSchema } from "./audio";
 
 const app = new Hono();
 
@@ -37,6 +38,7 @@ v1App.post("/files", uploadFileToR2);
 v1App.post("/image/captions", Validator(fileKeySchema), generateImageCaption);
 v1App.post("/images", Validator(createImageAssetSchame), createImageAsset);
 v1App.post("/videos", Validator(createVideoAssetSchema), createVideoAsset);
+v1App.post("/audios", Validator(createAudioAssetSchema), createAudioAsset);
 
 v1App.get("/assets", Validator(getAssetsSchame, "query"), getAssets);
 
