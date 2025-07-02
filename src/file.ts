@@ -59,8 +59,9 @@ export async function uploadFileToR2(c: C) {
   } else if (file.type.startsWith("audio/")) {
     type = AssetTypeEnum.AUDIO;
     customMetadata.duration = formData.get("duration") as string;
+    customMetadata.waveform = formData.get("waveform") as string;
   } else {
-    type = AssetTypeEnum.IMAGE;
+    type = AssetTypeEnum.UNKNOWN;
     message = "Not supported file type";
   }
 

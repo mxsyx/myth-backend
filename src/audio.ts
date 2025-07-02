@@ -59,6 +59,12 @@ export async function createAudioAsset(
     // This is necessary because R2 doesn't allow you to upload directly to the final location
     // We need to upload to the temporary location first, and then move it.
     await c.env.R2_ASSETS.put(key, await file.arrayBuffer());
+
+    // Move the waveform to the final location
+    await c.env.R2_ASSETS.put(
+      `${key}.waveform.json`,
+      file.customMetadata.waveform
+    );
   } catch (e) {
     // If there's an error, delete the file from the vector store
     // This is necessary because the file might be partially uploaded, and we don't want to leave it in the vector store
