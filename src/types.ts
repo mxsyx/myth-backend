@@ -30,6 +30,7 @@ export const AssetTypeEnum = {
   IMAGE: 1,
   VIDEO: 2,
   AUDIO: 3,
+  JSON: 4,
   UNKNOWN: 99,
 } as const;
 

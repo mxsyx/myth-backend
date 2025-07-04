@@ -20,6 +20,13 @@ function validVideo(file: File) {
   return null;
 }
 
+function validAudio(file: File) {
+  if (file.size > 32 * ONE_MB) {
+    return "Size shouldn't be more `than` 256 MB";
+  }
+  return null;
+}
+
 /**
  * Handles the upload of a file to R2 storage.
  * @description This function extracts a file from the request's form data, validates its type and size, and uploads it to a temporary R2 storage location.
@@ -58,6 +65,7 @@ export async function uploadFileToR2(c: C) {
     customMetadata.duration = formData.get("duration") as string;
   } else if (file.type.startsWith("audio/")) {
     type = AssetTypeEnum.AUDIO;
+    message = validAudio(file);
     customMetadata.duration = formData.get("duration") as string;
     customMetadata.waveform = formData.get("waveform") as string;
   } else {
@@ -73,6 +81,18 @@ export async function uploadFileToR2(c: C) {
   const uuid = crypto.randomUUID();
   const key = `${file.type.split("/")[0]}/${uuid}.${getExtension(file.type)}`;
   customMetadata.id = uuid;
+
+  if (customMetadata.waveform) {
+    const blob = new TextEncoder().encode(customMetadata.waveform).buffer;
+    const key = `audio/${uuid}.waveform.json`;
+    delete customMetadata.waveform;
+    await c.env.R2_ASSETS_TMP.put(key, blob, {
+      httpMetadata: {
+        contentType: "application/json",
+      },
+      customMetadata,
+    });
+  }
 
   await c.env.R2_ASSETS_TMP.put(key, blob, {
     httpMetadata: {

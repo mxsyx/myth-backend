@@ -27,6 +27,12 @@ export async function createAudioAsset(
     return c.json({ message: "File not found" }, 404);
   }
 
+  const waveformKey = `audio/${file.customMetadata.id}.waveform.json`;
+  const waveformFile = await c.env.R2_ASSETS_TMP.get(waveformKey);
+  if (!waveformFile) {
+    return c.json({ message: "Waveform not found" }, 404);
+  }
+
   // Run the Baai M3 model on the caption to generate an embedding
   const output = (await c.env.AI.run("@cf/baai/bge-m3", {
     text: [caption],
@@ -46,6 +52,7 @@ export async function createAudioAsset(
             caption,
             tags,
             type: AssetTypeEnum.AUDIO,
+            waveformUrl: `/${waveformKey}`,
           },
           // The generated embedding is stored in the vector store
           vector: output.data[0],
@@ -58,13 +65,17 @@ export async function createAudioAsset(
     // Move the file to the final location
     // This is necessary because R2 doesn't allow you to upload directly to the final location
     // We need to upload to the temporary location first, and then move it.
-    await c.env.R2_ASSETS.put(key, await file.arrayBuffer());
+    await c.env.R2_ASSETS.put(key, await file.arrayBuffer(), {
+      httpMetadata: file.httpMetadata,
+      customMetadata: file.customMetadata,
+    });
 
     // Move the waveform to the final location
-    await c.env.R2_ASSETS.put(
-      `${key}.waveform.json`,
-      file.customMetadata.waveform
-    );
+    await c.env.R2_ASSETS.put(waveformKey, await waveformFile.arrayBuffer(), {
+      httpMetadata: {
+        contentType: "application/json",
+      },
+    });
   } catch (e) {
     // If there's an error, delete the file from the vector store
     // This is necessary because the file might be partially uploaded, and we don't want to leave it in the vector store
