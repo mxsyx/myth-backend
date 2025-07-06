@@ -21,3 +21,9 @@ binding = "AI"
 
 [observability.logs]
 enabled = true
+
+[vars]
+ENVIRONMENT = "development"
+
+[env.production]
+vars.ENVIRONMENT = "production"

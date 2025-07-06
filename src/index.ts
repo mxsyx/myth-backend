@@ -10,7 +10,7 @@ import {
   generateImageCaption,
 } from "./image";
 import { Validator } from "./utils";
-import { fileKeySchema, uploadFileToR2 } from "./file";
+import { fileKeySchema, getFileFromR2, uploadFileToR2 } from "./file";
 import { getAssets, getAssetsSchame } from "./asset";
 import { createVideoAsset, createVideoAssetSchema } from "./video";
 import { createAudioAsset, createAudioAssetSchema } from "./audio";
@@ -35,6 +35,7 @@ const v1App = new Hono<{ Bindings: Bindings }>();
 v1App.get("/", (c) => c.text("Hello Hono!"));
 
 v1App.post("/files", uploadFileToR2);
+v1App.get("/files/:key{.*}", getFileFromR2);
 v1App.post("/image/captions", Validator(fileKeySchema), generateImageCaption);
 v1App.post("/images", Validator(createImageAssetSchame), createImageAsset);
 v1App.post("/videos", Validator(createVideoAssetSchema), createVideoAsset);

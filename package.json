@@ -3,16 +3,19 @@
   "version": "0.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "wrangler dev --remote"
+    "dev": "wrangler dev"
   },
+  "type": "module",
   "dependencies": {
     "@hono/zod-validator": "^0.5.0",
     "@qdrant/js-client-rest": "^1.14.0",
+    "esbuild": "^0.25.5",
     "hono": "^4.7.9",
     "zod": "^3.24.4"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250510.0",
+    "miniflare": "^4.20250617.5",
     "typescript": "^5.8.3",
     "wrangler": "^4.14.4"
   },

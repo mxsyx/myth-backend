@@ -108,3 +108,24 @@ export async function uploadFileToR2(c: C) {
     metadata: customMetadata,
   });
 }
+
+export async function getFileFromR2(c: C) {
+  if (c.env.ENVIRONMENT === "production") {
+    return c.status(403);
+  }
+
+  const key = c.req.param("key");
+  const object = await c.env.R2_ASSETS.get(key);
+
+  if (!object) {
+    return c.notFound();
+  }
+
+  return new Response(await object.arrayBuffer(), {
+    headers: {
+      "Content-Type":
+        object.httpMetadata?.contentType || "application/octet-stream",
+      "Cache-Control": "public, max-age=3600",
+    },
+  });
+}

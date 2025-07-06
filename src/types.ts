@@ -9,6 +9,8 @@ export interface Bindings {
   // Qdrant
   QDRANT_URL: string;
   QDRANT_API_KEY: string;
+
+  ENVIRONMENT: "development" | "production";
 }
 
 declare global {
