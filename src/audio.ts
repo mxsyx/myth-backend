@@ -53,6 +53,7 @@ export async function createAudioAsset(
             tags,
             type: AssetTypeEnum.AUDIO,
             waveformUrl: `/${waveformKey}`,
+            createdAt: Date.now(),
           },
           // The generated embedding is stored in the vector store
           vector: output.data[0],

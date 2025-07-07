@@ -52,6 +52,7 @@ export async function createVideoAsset(
             tags,
             type: AssetTypeEnum.VIDEO,
             poster: `/${posterKey}?w=${posterFile.customMetadata.width}&h=${posterFile.customMetadata.height}&thumbhash=${posterFile.customMetadata.thumbhash}`,
+            createdAt: Date.now(),
           },
           // The generated embedding is stored in the vector store
           vector: output.data[0],

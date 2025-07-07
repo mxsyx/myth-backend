@@ -73,6 +73,7 @@ export async function createImageAsset(
             caption,
             tags,
             type: AssetTypeEnum.IMAGE,
+            createdAt: Date.now(),
           },
           // The generated embedding is stored in the vector store
           vector: output.data[0],

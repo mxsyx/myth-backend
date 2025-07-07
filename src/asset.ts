@@ -4,16 +4,16 @@ import { BGEM3OuputEmbedding } from "@cloudflare/workers-types";
 import { components } from "@qdrant/js-client-rest/dist/types/openapi/generated_schema";
 
 export const getAssetsSchame = z.object({
-  page: z.number({ coerce: true }).min(1).default(1),
   type: z.number({ coerce: true }),
   prompt: z.string().optional(),
   keyword: z.string().optional(),
+  cursor: z.number({ coerce: true }).min(1).optional(),
 });
 
 export async function getAssets(
   c: C<z.infer<typeof getAssetsSchame>, "query">
 ) {
-  const { page, type, prompt, keyword } = c.req.valid("query");
+  const { type, prompt, keyword, cursor } = c.req.valid("query");
 
   let vector: number[] | undefined;
   if (prompt) {
@@ -45,15 +45,32 @@ export async function getAssets(
   }
 
   const qdrant = createQdrantClient(c.env);
-  const { points } = await qdrant.query("myth_assets", {
-    with_payload: true,
-    limit: 20,
-    offset: (page - 1) * 20,
-    query: vector,
-    filter: {
-      must: conditions,
-    },
-  });
+  if (vector) {
+    const { points } = await qdrant.query("myth_assets", {
+      with_payload: true,
+      limit: 20,
+      offset: ((cursor || 1) - 1) * 20,
+      query: vector,
+      filter: {
+        must: conditions,
+      },
+    });
 
-  return c.json(points);
+    return c.json(points);
+  } else {
+    const { points } = await qdrant.scroll("myth_assets", {
+      with_payload: true,
+      limit: 20,
+      filter: {
+        must: conditions,
+      },
+      order_by: {
+        key: "createdAt",
+        direction: "desc",
+        start_from: cursor,
+      },
+    });
+
+    return c.json(points);
+  }
 }
